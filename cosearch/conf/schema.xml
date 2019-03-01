@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<schema name="cosearch-1.0" version="1.6">
+
+  <types>
+    <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="sint" class="solr.TrieIntField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="date" class="solr.TrieDateField" sortMissingLast="true" omitNorms="true"/>
+    <fieldType name="dateRange" class="solr.DateRangeField"/>
+    <fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
+
+    <!-- Text fields -->
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100">
+      <analyzer type="index">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-cap.txt"/>
+        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+      <analyzer type="query">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-cap.txt"/>
+        <tokenizer class="solr.WhitespaceTokenizerFactory"/>
+        <filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="1" catenateWords="1" catenateNumbers="1" catenateAll="0" splitOnCaseChange="1"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    <fieldType name="random" class="solr.RandomSortField" />
+  </types>
+
+  <fields>
+    <!-- field names should consist of alphanumeric or underscore characters only and
+      not start with a digit.  This is not currently strictly enforced,
+      but other field names will not have first class support from all components
+      and back compatibility is not guaranteed.  Names with both leading and
+      trailing underscores (e.g. _version_) are reserved.
+   -->
+
+    <!-- If you remove this field, you must _also_ disable the update log in solrconfig.xml
+      or Solr won't start. _version_ and update log are required for SolrCloud
+   -->
+    <field name="_version_" type="long" indexed="true" stored="true"/>
+
+    <!-- Required control fields -->
+    <field name="key" type="string" required="true" indexed="true" stored="true"/>
+    <field name="type" type="string" required="true" indexed="true" stored="true"/>
+    <field name="depositor" type="string" required="true" indexed="true" stored="true"/>
+    <field name="label" type="string" required="true" indexed="true" stored="true"/>
+
+    <!-- Timestamp indicates when the record was indexed -->
+    <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" />
+
+    <!-- Optional control fields -->
+    <field name="pkey" type="string" indexed="true" stored="true"/>
+    <field name="plabel" type="string" indexed="false" stored="true"/>
+    <field name="seq" type="sint" indexed="true" stored="true"/>
+    <field name="pubmin" type="date" indexed="true" stored="true"/>
+    <field name="pubmax" type="date" indexed="true" stored="true"/>
+    <field name="lang" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="identifier" type="string" required="false" multiValued="true"/>
+
+    <!-- Includes what were originally known as either portals or collections -->
+    <field name="collection" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- Child count fields -->
+    <field name="item_count" type="sint" indexed="false" stored="true"/>
+    <field name="component_count" type="sint" indexed="false" stored="true"/>
+    <field name="component_count_fulltext" type="sint" indexed="false" stored="true"/>
+
+    <!-- Description and content -->
+
+    <field name="ti" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="au" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="pu" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="su" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="no" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="ab" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="tx" type="text" indexed="true" stored="false" multiValued="true"/>
+
+    <!-- Bibliographic note subtypes -->
+    <field name="no_rights" type="text" indexed="true" multiValued="true"/>
+    <field name="no_source" type="text" indexed="true" multiValued="true"/>
+
+    <!-- Enhanced metadata fields -->
+    <field name="tag" type="text" indexed="true" stored="false" multiValued="true"/>
+    <field name="tagPerson" type="text" indexed="true" stored="false" multiValued="true"/>
+    <field name="tagName" type="text" indexed="true" stored="false" multiValued="true"/>
+    <field name="tagPlace" type="text" indexed="true" stored="false" multiValued="true"/>
+    <field name="tagDate" type="dateRange" indexed="true" stored="false" multiValued="true"/>
+    <field name="tagNotebook" type="text" indexed="true" stored="false" multiValued="true"/>
+    <field name="tagDescription" type="text" indexed="true" stored="false" multiValued="true"/>
+
+    <!-- New parliament fields 2019 -->
+    <field name="parlLabel" type="string" indexed="false" stored="true" />
+    <field name="parlChamber" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="parlSession" type="string" indexed="true" stored="true" multiValued="true" />
+    <field name="parlType" type="string" indexed="true" stored="true" />
+    <field name="parlReportTitle" type="text" indexed="false" stored="true" multiValued="true" />
+    <field name="parlCallNumber" type="string" indexed="true" stored="true" />
+    <field name="parlPrimeMinisters" type="string" indexed="false" stored="true" />
+
+
+    <!-- Copy data into a general query field (omitting tx, as we don't
+    want to store it twice: a general search should be "q=gq:foo OR tx:foo" -->
+    <field name="gq" type="text" indexed="true" stored="false" multiValued="true"/>
+    <copyField source="identifier" dest="gq"/>
+    <copyField source="ti" dest="gq"/>
+    <copyField source="au" dest="gq"/>
+    <copyField source="pu" dest="gq"/>
+    <copyField source="su" dest="gq"/>
+    <copyField source="no" dest="gq"/>
+    <copyField source="ab" dest="gq"/>
+    <copyField source="no_rights" dest="gq"/>
+    <copyField source="no_source" dest="gq"/>
+    <copyField source="tag" dest="gq"/>
+    <copyField source="tagPerson" dest="gq"/>
+    <copyField source="tagName" dest="gq"/>
+    <copyField source="tagPlace" dest="gq"/>
+    <copyField source="tagDate" dest="gq"/>
+    <copyField source="tagNotebook" dest="gq"/>
+    <copyField source="tagDescription" dest="gq"/>
+    <copyField source="parlCallNumber" dest="gq"/>
+
+
+    <!-- dynamic field for random sorting (the wildcard is a seed) -->
+    <dynamicField name="random_*" type="random" indexed="true" stored="false" />
+
+  </fields>
+
+  <uniqueKey>key</uniqueKey>
+
+</schema>
