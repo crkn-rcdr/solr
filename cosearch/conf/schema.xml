@@ -51,6 +51,7 @@
     <field name="timestamp" type="date" indexed="true" stored="true" default="NOW" />
 
     <!-- Optional control fields -->
+    <field name="noid" type="string" indexed="true" stored="true"/>
     <field name="pkey" type="string" indexed="true" stored="true"/>
     <field name="plabel" type="string" indexed="false" stored="true"/>
     <field name="seq" type="sint" indexed="true" stored="true"/>
